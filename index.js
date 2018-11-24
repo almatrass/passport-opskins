@@ -177,15 +177,19 @@ module.exports = {
               return this.error(new Error(`Invalid JSON response`));
             
             let realBody = JSON.parse(body3);
-            
+            console.log(realBody)
             if (realBody.error)
               return this.error(new Error(`Failed to serialize user into session: ${realBody.error}`));
             
             let userObj = realBody.response;
-            userObj.balance = realBody.balance;
-            userObj.credits = realBody.credits;
-            userObj.cryptoBalances = realBody.cryptoBalances;
+            
+            // OPSkins don't give these anymore
+//            userObj.balance = realBody.balance;
+//            userObj.credits = realBody.credits;
+//            userObj.cryptoBalances = realBody.cryptoBalances;
+            
             userObj.access = body;
+            userObj.access.code = parsedQuery.code;
             
             let datErr = this.error;
             let datSuccess = this.success;
