@@ -96,7 +96,7 @@ You can get a new access token by POSTing `https://oauth.opskins.com/v1/access_t
 You can POST this unlimited times if you specify `permanent`. If your access is not permanent, you'll need to just redirect the user to login again.
 
 #### Test
-`git clone https://github.com/liamcurry/passport-steam.git`
+`git clone https://github.com/almatrass/passport-opskins.git`
 
 `cd passport-opskins/examples`
 
