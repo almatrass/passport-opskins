@@ -24,7 +24,7 @@ passport.use('opskins', new opStrategy({
   scopes: 'identity',
   mobile: true, // Remove OPSkins NavBar
   permanent: true, // Maintain permanent access to the account
-  debug: true // Displays error messages in the browser
+  debug: true // Displays error messages in the browser instead of redirecting
 }, (user, done) => {
   return done(null, user);
 }));
