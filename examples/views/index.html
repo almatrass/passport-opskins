@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <style>
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+      }
+
+      td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #dddddd;
+      }
+    </style>
+  </head>
+  <body>
+    {{#if user}}
+    <h2>You are logged in. <a href="/logout">Logout</a></h2>
+    <table>
+      <tbody>
+        <tr>
+          <td>Username</td>
+          <td>{{user.username}}</td>
+        </tr>
+        <tr>
+          <td>Avatar</td>
+          <td><img style="height: 40px;" src="{{user.avatar}}"></td>
+        </tr>
+        <tr>
+          <td>UID</td>
+          <td>{{user.id}}</td>
+        </tr>
+        <tr>
+          <td>SteamID (if set)</td>
+          <td>{{user.id64}}</td>
+        </tr>
+      </tbody>
+    </table>
+    {{else}}
+    <h2>You are not logged in. <a href="/auth/opskins">Login</a></h2>
+    {{/if}}
+  </body>
+</html>

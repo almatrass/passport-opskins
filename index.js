@@ -28,6 +28,7 @@ module.exports = {
     this.clientID = null;
     this.clientSecret = null;
     this.name = 'opskins';
+    this.debug = obj.debug || null;
     this.callback = callback;
 
     this.setIdAndSecret = function(id, secret) {
@@ -137,9 +138,18 @@ module.exports = {
             originated = true;
           }
         });
-        if (!originated)
-          this.error(new Error(`Authentication did not originate on this server`));
-
+        
+        
+        if (!originated) {
+          let err = new Error(`Authentication did not originate on this server`);
+          
+          if (_this.debug)
+            return this.error(err);
+          
+          console.error(err);
+          return this.fail(err);
+        }
+        
         let auth = 'Basic ' + Buffer.from(_this.clientID + ':' + _this.clientSecret).toString('base64');
 
         let headers = {
@@ -153,14 +163,33 @@ module.exports = {
           body: `grant_type=authorization_code&code=${parsedQuery.code}`
         };
         request.post(options, (err, response, body) => {
-          if (err)
-            return this.error(err);
+          if (err) {
+            if (_this.debug)
+              return this.error(err);
 
-          if (!isValidJson(body))
-            return this.error(new Error(`Invalid JSON response`));
+            console.error(err);
+            return this.fail(err);
+          }
+          
+          if (!isValidJson(body)) {
+            let err = new Error(`Invalid JSON response`);
+            if (_this.debug)
+              return this.error(err);
+
+            console.error(err);
+            return this.fail(err);
+          }
+          
           body = JSON.parse(body);
-          if (body.error)
-            return this.error(new Error(`Failed to serialize user into session: ${body.error}`));
+          if (body.error) {
+            let err = new Error(`Failed to serialize user into session: ${body.error}`);
+            
+            if (_this.debug)
+              return this.error(err);
+
+            console.error(err);
+            return this.fail(err);
+          }
 
           let headers2 = {
             'Authorization': `Bearer ${body.access_token}`
@@ -170,16 +199,35 @@ module.exports = {
             headers: headers2
           };
           request.get(options2, (err, response, body3) => {
-            if (err)
-              return this.error(err);
+            if (err) {
+              if (_this.debug)
+                return this.error(err);
+              
+              console.error(err);
+              return this.fail(err);
+            }
 
-            if (!isValidJson(body3))
-              return this.error(new Error(`Invalid JSON response`));
+            if (!isValidJson(body3)) {
+              let err = new Error(`Invalid JSON response`);
+              
+              if (_this.debug)
+                return this.error(err);
+              
+              console.error(err);
+              return this.fail(err);
+            }
 
             let realBody = JSON.parse(body3);
             
-            if (realBody.error)
-              return this.error(new Error(`Failed to serialize user into session: ${realBody.error}`));
+            if (realBody.error) {
+              let err = new Error(`Failed to serialize user into session: ${realBody.error}`);
+              
+              if (_this.debug)
+                return this.error(err);
+              
+              console.error(err);
+              return this.fail(err);
+            }
 
             let userObj = realBody.response;
 
@@ -191,10 +239,14 @@ module.exports = {
             userObj.access = body;
             userObj.access.code = parsedQuery.code;
 
-            let datErr = this.error;
+            let datErr = _this.debug ? this.error : this.fail;
             let datSuccess = this.success;
             _this.callback(userObj, function(err, user) {
-              if (err) return datErr(err);
+              if (err) {
+                if (!_this.debug)
+                  console.error(err);
+                return datErr(err);
+              }
               datSuccess(user);
             });
           });

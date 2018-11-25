@@ -22,8 +22,9 @@ passport.use('opskins', new opStrategy({
   returnURL: 'http://localhost/auth/opskins/return',
   apiKey: 'YOUR OPSKINS API KEY',
   scopes: 'identity',
-  mobile: true,
-  permanent: true
+  mobile: true, // Remove OPSkins NavBar
+  permanent: true, // Maintain permanent access to the account
+  debug: true // Displays error messages in the browser
 }, (user, done) => {
   return done(null, user);
 }));
@@ -93,6 +94,17 @@ This access token is valid for 30 minutes. Endpoints will return an error like t
 You can get a new access token by POSTing `https://oauth.opskins.com/v1/access_token` with the `user.access.code` as the code. More details: https://docs.opskins.com/public/en.html#getting-a-bearer-token
 
 You can POST this unlimited times if you specify `permanent`. If your access is not permanent, you'll need to just redirect the user to login again.
+
+#### Test
+`git clone https://github.com/liamcurry/passport-steam.git`
+
+`cd passport-opskins/examples`
+
+`npm i`
+
+`node index`
+
+The server will run on `localhost:3037`. 
 
 #### Extra notes
 OPSkins limits the clients you can own. The module deletes all previous clients with the same `name`, or the same `returnURL` values. This should be fine, but if you reach the limit, you can simply call the `getClientList` along with the `deleteClientList` functions on the strategy object:

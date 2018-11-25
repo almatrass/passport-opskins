@@ -1,0 +1,4 @@
+.DS_Store
+.sftp
+node_modules
+config.js
