@@ -32,8 +32,8 @@ module.exports = {
     this.callback = callback;
 
     this.setIdAndSecret = function(id, secret) {
-    this.clientID = id;
-    this.clientSecret = secret;
+      this.clientID = id;
+      this.clientSecret = secret;
     };
 
     this.deleteClient = function(clientid) {
@@ -110,15 +110,16 @@ module.exports = {
     this.updateStates = function(states) {
       this.states = states;
     };
-
+    
     this.goLogin = function() {
       const rand = crypto.randomBytes(4).toString('hex');
       this.states.push(rand);
-
+      
+      let _dat = this;
       setTimeout(function () {
-        for (let i = 0; i < this.states.length; i++) {
-          if (this.states[i] == rand) {
-            this.states.splice(i, 1);
+        for (let i = 0; i < _dat.states.length; i++) {
+          if (_dat.states[i] == rand) {
+            _dat.states.splice(i, 1);
           }
         }
       }, 600000);
@@ -254,6 +255,34 @@ module.exports = {
       } else {
         data.res.redirect(_this.goLogin());
       }
+    };
+    this.refreshAccessToken = function(refreshToken, cb) {
+      let auth = 'Basic ' + Buffer.from(this.clientID + ':' + this.clientSecret).toString('base64');
+      
+      let headers = {
+        'Authorization': auth,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      };
+      let options = {
+        url: 'https://oauth.opskins.com/v1/access_token',
+        method: 'POST',
+        headers: headers,
+        body: `grant_type=refresh_token&refresh_token=${refreshToken}`
+      };
+      request.post(options, (err, response, body) => {
+        if (err)
+          return cb(err);
+
+        if (!isValidJson(body))
+          return cb(new Error(`Invalid JSON response`));
+        
+        body = JSON.parse(body);
+        
+        if (body.error)
+          return cb(new Error(body.error));
+        
+        cb(null, body.access_token);
+      });
     };
   }
 };

@@ -40,7 +40,7 @@ let strat = new opStrategy({
   name: 'passport-opskins-example',
   returnURL: 'http://localhost:3037/auth/opskins/return',
   apiKey: config.apiKey,
-  scopes: 'identity',
+  scopes: 'identity', // Space-separated list of identities
   mobile: true, // Remove OPSkins NavBar
   permanent: true, // Maintain permanent access to the account
   debug: true // Displays error messages in the browser
@@ -54,10 +54,22 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/', (req, res) => {
-  console.log(req.user)
+  console.log(req.user);
   res.render('index', {
     user: req.user
   });
+});
+
+app.get('/refreshtoken', (req, res) => {
+  if (req.user) {
+    strat.refreshAccessToken(req.user.access.refresh_token, (err, token) => {
+      if (err) return res.end('An error occurred');
+      req.user.access.access_token = token;
+      res.end(`Your new access token is: ${token}`);
+    });
+  } else {
+    res.end(`<a href="/auth/opskins">Please login to see this</a>`);
+  }
 });
 
 app.get(/^\/auth\/opskins(\/return)?$/, passport.authenticate('opskins', {
