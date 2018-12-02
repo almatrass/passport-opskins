@@ -91,9 +91,9 @@ This access token is valid for 30 minutes. Endpoints will return an error like t
     "error_description": "Bearer token has expired"
 }
 ```
-You can get a new access token by POSTing `https://oauth.opskins.com/v1/access_token` with the `user.access.code` as the code. More details: https://docs.opskins.com/public/en.html#getting-a-bearer-token
+You can get a new access token by POSTing `https://oauth.opskins.com/v1/access_token` with the `user.access.refresh_token` as the code. The `grant_type=refresh_token` must be specified for refreshing the user. More details: https://docs.opskins.com/public/en.html#getting-a-bearer-token
 
-You can POST this unlimited times if you specify `permanent`. If your access is not permanent, you'll need to just redirect the user to login again.
+You can POST this unlimited times if you specify `permanent`. If your access is not permanent, you'll need to just redirect the user to login again to get a new `access_token`.
 
 #### Test
 `git clone https://github.com/almatrass/passport-opskins.git`
