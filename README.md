@@ -137,7 +137,7 @@ Do note that you must have specified `permanent` in the `new opStrategy` constru
 The server will run on `localhost:3037`. 
 
 #### Extra notes
-OPSkins limits the clients you can own. The module deletes all previous clients with the same `name`, or the same `returnURL` values. This should be fine, but if you reach the limit, you can simply call the `getClientList` along with the `deleteClientList` functions on the strategy object:
+OPSkins limits the clients you can own. The module deletes all previous clients with the same `name`, or the same `returnURL` values. This should be fine, but if you reach the limit, you can simply call the `getClientList` along with the `deleteClient` functions on the strategy object:
 
 ```js
 let strat = new opStrategy({
