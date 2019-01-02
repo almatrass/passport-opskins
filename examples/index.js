@@ -40,10 +40,10 @@ let strat = new opStrategy({
   name: 'passport-opskins-example',
   returnURL: 'http://localhost:3037/auth/opskins/return',
   apiKey: config.apiKey,
-  scopes: 'identity', // Space-separated list of identities
+  scopes: 'identity_basic', // Space-separated list of identities
   mobile: true, // Remove OPSkins NavBar
   permanent: true, // Maintain permanent access to the account
-  debug: true // Displays error messages in the browser
+  debug: false // Displays error messages in the browser
 }, (user, done) => {
   return done(null, user);
 });
@@ -73,9 +73,10 @@ app.get('/refreshtoken', (req, res) => {
 });
 
 app.get(/^\/auth\/opskins(\/return)?$/, passport.authenticate('opskins', {
-  successRedirect: '/',
 	failureRedirect: '/'
-}));
+}), (req, res) => {
+  res.redirect('/')
+});
 
 app.get('/logout', (req, res) => {
 	req.logout();

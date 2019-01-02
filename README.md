@@ -32,9 +32,10 @@ passport.use('opskins', new opStrategy({
 #### Routes
 ```js
 app.get(/^\/auth\/opskins(\/return)?$/, passport.authenticate('opskins', {
-  successRedirect: '/',
-  failureRedirect: '/'
-}));
+	failureRedirect: '/'
+}), (req, res) => {
+  res.redirect('/')
+});
 ```
 #### Direct your user to logon
 ```html
