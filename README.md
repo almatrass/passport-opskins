@@ -21,7 +21,7 @@ passport.use('opskins', new opStrategy({
   name: 'YOUR SITE NAME',
   returnURL: 'http://localhost/auth/opskins/return',
   apiKey: 'YOUR OPSKINS API KEY',
-  scopes: 'identity', // Space-separated list of identities
+  scopes: 'identity_basic', // Space-separated list of identities
   mobile: true, // Remove OPSkins NavBar
   permanent: true, // Maintain permanent access to the account
   debug: true // Displays error messages in the browser instead of redirecting
@@ -34,6 +34,7 @@ passport.use('opskins', new opStrategy({
 app.get(/^\/auth\/opskins(\/return)?$/, passport.authenticate('opskins', {
 	failureRedirect: '/'
 }), (req, res) => {
+  // Success, redirect home
   res.redirect('/')
 });
 ```

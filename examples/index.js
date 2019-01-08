@@ -75,6 +75,7 @@ app.get('/refreshtoken', (req, res) => {
 app.get(/^\/auth\/opskins(\/return)?$/, passport.authenticate('opskins', {
 	failureRedirect: '/'
 }), (req, res) => {
+  // Success, redirect home
   res.redirect('/')
 });
 
