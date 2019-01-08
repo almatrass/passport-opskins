@@ -130,9 +130,11 @@ module.exports = {
     let _this = this;
     this.authenticate = function(data, redirect) {
       let urlOptions = data._parsedUrl;
-      if (url.parse(_this.returnURL).pathname == urlOptions.pathname) {
-        let parsedQuery = querystring.parse(urlOptions.query);
+      let originalUrl = data.originalUrl;
 
+      if (url.parse(_this.returnURL).pathname == url.parse(originalUrl).pathname) {
+        let parsedQuery = querystring.parse(urlOptions.query);
+        
         let originated;
         _this.states.forEach(function (state) {
           if (state == parsedQuery.state) {
