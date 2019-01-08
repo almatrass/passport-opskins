@@ -1,6 +1,6 @@
 {
   "name": "passport-opskins",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A simple passport strategy for authenticating users through the OPSkins platform",
   "main": "index.js",
   "scripts": {
