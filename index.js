@@ -50,13 +50,17 @@ module.exports = {
           console.error(err);
       });
     };
+    
+    this.getApiKey = function() {
+      return this.apiKey;
+    }
 
     let _self = this;
     this.getClientList = function(cb) {
       let options = {
         url: 'https://api.opskins.com/IOAuth/GetOwnedClientList/v1/', 
         headers: {
-          'authorization': `Basic ${_self.apiKey}`, 
+          'authorization': `Basic ${_self.getApiKey()}`, 
           'Content-Type': 'application/json; charset=utf-8'
         }
       };
@@ -74,34 +78,34 @@ module.exports = {
     };
 
     this.refreshClientList = function() {
-    let datApiKey = this.apiKey;
+      let datApiKey = this.apiKey;
 
-    this.getClientList((err, clients) => {
-      if (err) return console.error(err);
-      let _self = this;
-      clients.forEach(function (client) {
-        if (client.name == _this.siteName || client.redirect_uri == _this.returnURL) {
-          _self.deleteClient(client.client_id);
-        }
-      });
-      let options = {
-        url: 'https://api.opskins.com/IOAuth/CreateClient/v1/', 
-        headers: {
-          'authorization': `Basic ${datApiKey}`, 
-          'Content-Type': 'application/json; charset=utf-8'
-        }, 
-        body: `{"name": "${this.siteName}", "redirect_uri": "${this.returnURL}"}`
-      };
-      request.post(options, (err, response, body) => {
-        if (err)
-          return console.error(err);
-        if (!isValidJson(body))
-          return console.error(new Error(`Invalid JSON response`));
-        body = JSON.parse(body);
-        if (!body.response || !body.response.client || !body.response.client.client_id || !body.response.secret)
-          throw new Error(body.message);
+      this.getClientList((err, clients) => {
+        if (err) return console.error(err);
+        let _dat = this;
+        clients.forEach(function (client) {
+          if (client.name == _dat.siteName || client.redirect_uri == _dat.returnURL) {
+            _dat.deleteClient(client.client_id);
+          }
+        });
+        let options = {
+          url: 'https://api.opskins.com/IOAuth/CreateClient/v1/', 
+          headers: {
+            'authorization': `Basic ${datApiKey}`, 
+            'Content-Type': 'application/json; charset=utf-8'
+          }, 
+          body: `{"name": "${this.siteName}", "redirect_uri": "${this.returnURL}"}`
+        };
+        request.post(options, (err, response, body) => {
+          if (err)
+            return console.error(err);
+          if (!isValidJson(body))
+            return console.error(new Error(`Invalid JSON response`));
+          body = JSON.parse(body);
+          if (!body.response || !body.response.client || !body.response.client.client_id || !body.response.secret)
+            throw new Error(body.message);
 
-        this.setIdAndSecret(body.response.client.client_id, body.response.secret);
+          this.setIdAndSecret(body.response.client.client_id, body.response.secret);
         });
       });
     };
@@ -110,6 +114,15 @@ module.exports = {
     this.updateStates = function(states) {
       this.states = states;
     };
+    this.getStates = function() {
+      return this.states;
+    };
+    this.getReturnUrl = function() {
+      return this.returnURL;
+    };
+    this.getAuth = function() {
+      return 'Basic ' + Buffer.from(this.clientID + ':' + this.clientSecret).toString('base64');
+    }
     
     this.goLogin = function() {
       const rand = crypto.randomBytes(4).toString('hex');
@@ -120,6 +133,7 @@ module.exports = {
         for (let i = 0; i < _dat.states.length; i++) {
           if (_dat.states[i] == rand) {
             _dat.states.splice(i, 1);
+            _dat.updateStates(_dat.states);
           }
         }
       }, 600000);
@@ -132,11 +146,11 @@ module.exports = {
       let urlOptions = data._parsedUrl;
       let originalUrl = data.originalUrl;
 
-      if (url.parse(_this.returnURL).pathname == url.parse(originalUrl).pathname) {
+      if (url.parse(_this.getReturnUrl()).pathname == url.parse(originalUrl).pathname) {
         let parsedQuery = querystring.parse(urlOptions.query);
         
         let originated;
-        _this.states.forEach(function (state) {
+        _this.getStates().forEach(function (state) {
           if (state == parsedQuery.state) {
             originated = true;
           }
@@ -153,7 +167,7 @@ module.exports = {
           return this.fail(err);
         }
         
-        let auth = 'Basic ' + Buffer.from(_this.clientID + ':' + _this.clientSecret).toString('base64');
+        let auth = _this.getAuth();
 
         let headers = {
           'Authorization': auth, 
