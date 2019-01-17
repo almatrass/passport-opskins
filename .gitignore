@@ -2,3 +2,4 @@
 .sftp
 node_modules
 config.js
+clients.json

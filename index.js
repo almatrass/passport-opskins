@@ -1,7 +1,9 @@
 const request = require('request'),
       crypto = require('crypto'),
       url = require('url'),
-      querystring = require('querystring');
+      querystring = require('querystring'),
+      fs = require('fs'),
+      path = require('path');
 
 function isValidJson(json) {
   try {
@@ -35,6 +37,33 @@ module.exports = {
       this.clientID = id;
       this.clientSecret = secret;
     };
+    
+    this.getLocalSavedClientList = function() {
+      if (!fs.existsSync(path.join(__dirname, 'clients.json')))
+        return [];
+      let data = fs.readFileSync(path.join(__dirname, 'clients.json'), 'utf8');
+      if (!isValidJson(data))
+        return [];
+      return JSON.parse(data).clients;
+    };
+    
+    this.pushToLocalSavedClientList = function(client) {
+      if (!fs.existsSync(path.join(__dirname, 'clients.json')))
+        fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify({
+          clients: []
+        }));
+      
+      let jsonObj = fs.readFileSync(path.join(__dirname, 'clients.json'), 'utf8');
+      if (!isValidJson(jsonObj))
+        fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify({
+          clients: []
+        }));
+      
+      jsonObj = JSON.parse(jsonObj);
+      jsonObj.clients.push(client);
+      
+      fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify(jsonObj));
+    };
 
     this.deleteClient = function(clientid) {
       let options = {
@@ -53,7 +82,7 @@ module.exports = {
     
     this.getApiKey = function() {
       return this.apiKey;
-    }
+    };
 
     let _self = this;
     this.getClientList = function(cb) {
@@ -77,17 +106,26 @@ module.exports = {
       });
     };
 
-    this.refreshClientList = function() {
+    this.getOrMakeClient = function() {
+      let localSavedClients = this.getLocalSavedClientList();
       let datApiKey = this.apiKey;
-
+      
       this.getClientList((err, clients) => {
         if (err) return console.error(err);
         let _dat = this;
+        
+        let existingClient = null;
+        
         clients.forEach(function (client) {
-          if (client.name == _dat.siteName || client.redirect_uri == _dat.returnURL) {
-            _dat.deleteClient(client.client_id);
-          }
+          localSavedClients.forEach(function(localClient) {
+            if (localClient.client_id == client.client_id)
+              existingClient = localClient;
+          });
         });
+        if (existingClient) {
+          return this.setIdAndSecret(existingClient.client_id, existingClient.secret);
+        }
+        
         let options = {
           url: 'https://api.opskins.com/IOAuth/CreateClient/v1/', 
           headers: {
@@ -104,12 +142,15 @@ module.exports = {
           body = JSON.parse(body);
           if (!body.response || !body.response.client || !body.response.client.client_id || !body.response.secret)
             throw new Error(body.message);
-
+          
+          body.response.client.secret = body.response.secret;
+          
+          this.pushToLocalSavedClientList(body.response.client);
           this.setIdAndSecret(body.response.client.client_id, body.response.secret);
         });
       });
     };
-    this.refreshClientList();
+    this.getOrMakeClient();
 
     this.updateStates = function(states) {
       this.states = states;

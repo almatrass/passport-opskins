@@ -1,15 +1,15 @@
 const express = require('express'),
-      handlebars = require('express-handlebars'),
-      passport = require('passport'),
-      session = require('express-session'),
-      opStrategy = require('../').Strategy;
+    handlebars = require('express-handlebars'),
+    passport = require('passport'),
+    session = require('express-session'),
+    opStrategy = require('../').Strategy;
 
 const config = require('./config');
 
 const app = express();
 
 const Handlebars = handlebars.create({
-	extname: '.html'
+  extname: '.html'
 });
 
 app.engine('html', Handlebars.engine);
@@ -17,28 +17,28 @@ app.set('view engine', 'html');
 app.set('views', './views');
 
 let sessionMiddleware = session({
-	key: 'session_id', 
+  key: 'session_id', 
   secret: 'almatrass', 
   resave: false, 
   saveUninitialized: true, 
   cookie: {
-		maxAge: 1000 * 60 * 60 * 24 * 365
-	}
+    maxAge: 1000 * 60 * 60 * 24 * 365
+  }
 });
 
 app.use(sessionMiddleware);
 
 passport.serializeUser((user, done) => {
-	done(null, user);
+  done(null, user);
 });
 
 passport.deserializeUser((obj, done) => {
-	done(null, obj);
+  done(null, obj);
 });
 
 let strat = new opStrategy({
   name: 'passport-opskins-example',
-  returnURL: 'http://localhost:3037/auth/opskins/return',
+  returnURL: `http://localhost:3037/auth/opskins/return`,
   apiKey: config.apiKey,
   scopes: 'identity_basic', // Space-separated list of identities
   mobile: true, // Remove OPSkins NavBar
@@ -73,15 +73,16 @@ app.get('/refreshtoken', (req, res) => {
 });
 
 app.get(/^\/auth\/opskins(\/return)?$/, passport.authenticate('opskins', {
-	failureRedirect: '/'
+  failureRedirect: '/'
 }), (req, res) => {
   // Success, redirect home
   res.redirect('/')
 });
 
 app.get('/logout', (req, res) => {
-	req.logout();
-	res.redirect('/');
+  req.logout();
+  res.redirect('/');
 });
+
 
 app.listen(3037);
