@@ -118,7 +118,7 @@ module.exports = {
         
         clients.forEach(function (client) {
           localSavedClients.forEach(function(localClient) {
-            if (localClient.client_id == client.client_id)
+            if (localClient.client_id == client.client_id && localClient.name == client.name && localClient.redirect_uri == client.redirect_uri)
               existingClient = localClient;
           });
         });
@@ -314,8 +314,8 @@ module.exports = {
       }
     };
     this.refreshAccessToken = function(refreshToken, cb) {
-      let auth = 'Basic ' + Buffer.from(this.clientID + ':' + this.clientSecret).toString('base64');
-      
+      let auth = this.getAuth();
+            
       let headers = {
         'Authorization': auth,
         'Content-Type': 'application/x-www-form-urlencoded'
