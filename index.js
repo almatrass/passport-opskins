@@ -101,7 +101,7 @@ module.exports = {
           return cb(new Error(`Invalid JSON response`));
         let realBody = JSON.parse(body);
         if (realBody.status !== 1)
-          return cb(new Error(`An error occurred`));
+          return cb(new Error(`Error retrieving clients: ${realBody.message}`));
         cb(null, realBody.response.clients);
       });
     };
