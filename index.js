@@ -32,6 +32,7 @@ module.exports = {
     this.name = 'opskins';
     this.debug = obj.debug || null;
     this.callback = callback;
+    this.passReqToCallback = obj.passReqToCallback || false;
 
     this.setIdAndSecret = function(id, secret) {
       this.clientID = id;
@@ -299,14 +300,25 @@ module.exports = {
 
             let datErr = _this.debug ? this.error : this.fail;
             let datSuccess = this.success;
-            _this.callback(userObj, function(err, user) {
-              if (err) {
-                if (!_this.debug)
-                  console.error(err);
-                return datErr(err);
-              }
-              datSuccess(user);
-            });
+            if(this.passReqToCallback) {
+              _this.callback(data, userObj, function(err, user) {
+                if (err) {
+                  if (!_this.debug)
+                    console.error(err);
+                  return datErr(err);
+                }
+                datSuccess(user);
+              });
+            } else {
+              _this.callback(userObj, function(err, user) {
+                if (err) {
+                  if (!_this.debug)
+                    console.error(err);
+                  return datErr(err);
+                }
+                datSuccess(user);
+              });
+            }
           });
         });
       } else {
