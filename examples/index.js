@@ -38,7 +38,7 @@ passport.deserializeUser((obj, done) => {
 
 let strat = new opStrategy({
   name: 'passport-opskins-example',
-  returnURL: `http://localhost:3037/auth/opskins/return`,
+  returnURL: `http://localhost:${config.port}/auth/opskins/return`,
   apiKey: config.apiKey,
   scopes: 'identity_basic', // Space-separated list of identities
   mobile: true, // Remove OPSkins NavBar
@@ -85,4 +85,4 @@ app.get('/logout', (req, res) => {
 });
 
 
-app.listen(3037);
+app.listen(config.port);

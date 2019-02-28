@@ -119,7 +119,7 @@ module.exports = {
         
         clients.forEach(function (client) {
           localSavedClients.forEach(function(localClient) {
-            if (localClient.client_id == client.client_id && localClient.name == client.name && localClient.redirect_uri == client.redirect_uri)
+            if (localClient.client_id == client.client_id && localClient.name == client.name && localClient.redirect_uri == client.redirect_uri && _dat.returnURL == client.redirect_uri)
               existingClient = localClient;
           });
         });

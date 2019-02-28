@@ -1,3 +1,4 @@
 module.exports = {
-  apiKey: 'YOUR_API_KEY'
+  apiKey: 'YOUR_API_KEY',
+  port: 3037
 };
