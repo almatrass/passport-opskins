@@ -33,12 +33,13 @@ module.exports = {
     this.debug = obj.debug || null;
     this.callback = callback;
     this.passReqToCallback = obj.passReqToCallback || false;
+    this.canKeepSecret = obj.canKeepSecret || 1;
 
     this.setIdAndSecret = function(id, secret) {
       this.clientID = id;
       this.clientSecret = secret;
     };
-    
+
     this.getLocalSavedClientList = function() {
       if (!fs.existsSync(path.join(__dirname, 'clients.json')))
         return [];
@@ -47,32 +48,32 @@ module.exports = {
         return [];
       return JSON.parse(data).clients;
     };
-    
+
     this.pushToLocalSavedClientList = function(client) {
       if (!fs.existsSync(path.join(__dirname, 'clients.json')))
         fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify({
           clients: []
         }));
-      
+
       let jsonObj = fs.readFileSync(path.join(__dirname, 'clients.json'), 'utf8');
       if (!isValidJson(jsonObj))
         fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify({
           clients: []
         }));
-      
+
       jsonObj = JSON.parse(jsonObj);
       jsonObj.clients.push(client);
-      
+
       fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify(jsonObj));
     };
 
     this.deleteClient = function(clientid) {
       let options = {
-        url: 'https://api.opskins.com/IOAuth/DeleteClient/v1/', 
+        url: 'https://api.opskins.com/IOAuth/DeleteClient/v1/',
         headers: {
-          'authorization': `Basic ${this.apiKey}`, 
+          'authorization': `Basic ${this.apiKey}`,
           'Content-Type': 'application/x-www-form-urlencoded'
-        }, 
+        },
         body: `client_id=${clientid}`
       };
       request.post(options, (err, response, body) => {
@@ -80,7 +81,7 @@ module.exports = {
           console.error(err);
       });
     };
-    
+
     this.getApiKey = function() {
       return this.apiKey;
     };
@@ -88,9 +89,9 @@ module.exports = {
     let _self = this;
     this.getClientList = function(cb) {
       let options = {
-        url: 'https://api.opskins.com/IOAuth/GetOwnedClientList/v1/', 
+        url: 'https://api.opskins.com/IOAuth/GetOwnedClientList/v1/',
         headers: {
-          'authorization': `Basic ${_self.getApiKey()}`, 
+          'authorization': `Basic ${_self.getApiKey()}`,
           'Content-Type': 'application/json; charset=utf-8'
         }
       };
@@ -110,13 +111,13 @@ module.exports = {
     this.getOrMakeClient = function() {
       let localSavedClients = this.getLocalSavedClientList();
       let datApiKey = this.apiKey;
-      
+
       this.getClientList((err, clients) => {
         if (err) return console.error(err);
         let _dat = this;
-        
+
         let existingClient = null;
-        
+
         clients.forEach(function (client) {
           localSavedClients.forEach(function(localClient) {
             if (localClient.client_id == client.client_id && localClient.name == client.name && localClient.redirect_uri == client.redirect_uri && _dat.returnURL == client.redirect_uri)
@@ -126,14 +127,14 @@ module.exports = {
         if (existingClient) {
           return this.setIdAndSecret(existingClient.client_id, existingClient.secret);
         }
-        
+
         let options = {
-          url: 'https://api.opskins.com/IOAuth/CreateClient/v1/', 
+          url: 'https://api.opskins.com/IOAuth/CreateClient/v1/',
           headers: {
-            'authorization': `Basic ${datApiKey}`, 
+            'authorization': `Basic ${datApiKey}`,
             'Content-Type': 'application/json; charset=utf-8'
-          }, 
-          body: `{"name": "${this.siteName}", "redirect_uri": "${this.returnURL}"}`
+          },
+          body: `{"name": "${this.siteName}", "redirect_uri": "${this.returnURL}", "can_keep_secret" : "${this.canKeepSecret}"}`
         };
         request.post(options, (err, response, body) => {
           if (err)
@@ -143,9 +144,9 @@ module.exports = {
           body = JSON.parse(body);
           if (!body.response || !body.response.client || !body.response.client.client_id || !body.response.secret)
             throw new Error(body.message);
-          
+
           body.response.client.secret = body.response.secret;
-          
+
           this.pushToLocalSavedClientList(body.response.client);
           this.setIdAndSecret(body.response.client.client_id, body.response.secret);
         });
@@ -165,11 +166,11 @@ module.exports = {
     this.getAuth = function() {
       return 'Basic ' + Buffer.from(this.clientID + ':' + this.clientSecret).toString('base64');
     }
-    
+
     this.goLogin = function() {
       const rand = crypto.randomBytes(4).toString('hex');
       this.states.push(rand);
-      
+
       let _dat = this;
       setTimeout(function () {
         for (let i = 0; i < _dat.states.length; i++) {
@@ -190,35 +191,35 @@ module.exports = {
 
       if (url.parse(_this.getReturnUrl()).pathname == url.parse(originalUrl).pathname) {
         let parsedQuery = querystring.parse(urlOptions.query);
-        
+
         let originated;
         _this.getStates().forEach(function (state) {
           if (state == parsedQuery.state) {
             originated = true;
           }
         });
-        
-        
+
+
         if (!originated) {
           let err = new Error(`Authentication did not originate on this server`);
-          
+
           if (_this.debug)
             return this.error(err);
-          
+
           console.error(err);
           return this.fail(err);
         }
-        
+
         let auth = _this.getAuth();
 
         let headers = {
-          'Authorization': auth, 
+          'Authorization': auth,
           'Content-Type': 'application/x-www-form-urlencoded'
         };
         let options = {
-          url: 'https://oauth.opskins.com/v1/access_token', 
-          method: 'POST', 
-          headers: headers, 
+          url: 'https://oauth.opskins.com/v1/access_token',
+          method: 'POST',
+          headers: headers,
           body: `grant_type=authorization_code&code=${parsedQuery.code}`
         };
         request.post(options, (err, response, body) => {
@@ -229,7 +230,7 @@ module.exports = {
             console.error(err);
             return this.fail(err);
           }
-          
+
           if (!isValidJson(body)) {
             let err = new Error(`Invalid JSON response`);
             if (_this.debug)
@@ -238,11 +239,11 @@ module.exports = {
             console.error(err);
             return this.fail(err);
           }
-          
+
           body = JSON.parse(body);
           if (body.error) {
             let err = new Error(`Failed to serialize user into session: ${body.error}`);
-            
+
             if (_this.debug)
               return this.error(err);
 
@@ -254,36 +255,36 @@ module.exports = {
             'Authorization': `Bearer ${body.access_token}`
           };
           let options2 = {
-            url: 'https://api.opskins.com/IUser/GetProfile/v1/', 
+            url: 'https://api.opskins.com/IUser/GetProfile/v1/',
             headers: headers2
           };
           request.get(options2, (err, response, body3) => {
             if (err) {
               if (_this.debug)
                 return this.error(err);
-              
+
               console.error(err);
               return this.fail(err);
             }
 
             if (!isValidJson(body3)) {
               let err = new Error(`Invalid JSON response`);
-              
+
               if (_this.debug)
                 return this.error(err);
-              
+
               console.error(err);
               return this.fail(err);
             }
 
             let realBody = JSON.parse(body3);
-            
+
             if (realBody.error) {
               let err = new Error(`Failed to serialize user into session: ${realBody.error}`);
-              
+
               if (_this.debug)
                 return this.error(err);
-              
+
               console.error(err);
               return this.fail(err);
             }
@@ -327,7 +328,7 @@ module.exports = {
     };
     this.refreshAccessToken = function(refreshToken, cb) {
       let auth = this.getAuth();
-            
+
       let headers = {
         'Authorization': auth,
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -344,12 +345,12 @@ module.exports = {
 
         if (!isValidJson(body))
           return cb(new Error(`Invalid JSON response`));
-        
+
         body = JSON.parse(body);
-        
+
         if (body.error)
           return cb(new Error(body.error));
-        
+
         cb(null, body.access_token);
       });
     };
